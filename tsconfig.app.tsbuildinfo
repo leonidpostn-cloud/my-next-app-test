@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/data/mockdata.ts","./src/lib/discover.ts","./src/lib/geo.ts","./src/lib/time.ts","./src/lib/types.ts","./src/pages/discoverpage.tsx","./src/pages/mappage.tsx","./src/pages/notespage.tsx","./src/pages/profilepage.tsx","./src/pages/rewardspage.tsx","./src/state/appstate.tsx"],"version":"5.9.3"}
