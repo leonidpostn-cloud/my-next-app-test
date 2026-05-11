@@ -32,3 +32,23 @@ npm run preview
 - Данные о местах, друзьях, квестах и заметках сейчас моковые
 - Реальной авторизации, бэкенда и загрузки фото пока нет
 - "ИИ-подбор" сделан как эвристический мастер вопросов без внешней модели
+
+# 1. Инициализируйте Git (если ещё не сделано)
+# cd c:\Users\lyonc\Downloads\GigaStudio-50696f09-master\gigastudio-50696f09
+# git init
+
+# 2. Создайте аккаунт на GitHub и войдите
+#    Перейдите: https://github.com
+
+# 3. Создайте новый публичный репозиторий (например, "my-next-app")
+
+# 4. Свяжите локальный проект с GitHub
+git config --global user.email "leonid.postn@gmail.com"
+git config --global user.name "leonidpostn-cloud"
+git remote add origin https://github.com/leonidpostn-cloud/my-next-app.git
+
+# 5. Добавьте и отправьте файлы
+git add .
+git commit -m "Первая версия"
+git branch -M main
+git push -u origin main
