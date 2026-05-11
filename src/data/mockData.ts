@@ -362,6 +362,8 @@ export function createInitialState(): StoredState {
     activeQuestId: 'city-head',
     currentLocation: defaultLocation,
     systemMessage:
-      'Запущен тестовый режим: карта, награды и подбор мест работают на локальных данных.'
-  }
+      'Запущен тестовый режим: карта, награды и подбор мест работают на локальных данных.',
+    locationPrompt: null
+  };
+}
 }
