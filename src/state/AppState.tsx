@@ -19,7 +19,10 @@ import {
   Visibility
 } from '../lib/types'
 
-const STORAGE_KEY = 'otkryvaika-demo-state-v1'
+const STORAGE_KEY = 'otkryvaika-demo-state-v1';
+
+// Интервал в миллисекундах, после которого можно снова показать подсказку (10 минут)
+const LOCATION_PROMPT_INTERVAL = 15 * 60 * 1000; // 15 минут
 
 interface AppStats {
   uniqueVisited: number
@@ -223,16 +226,31 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    setState((current) => ({
-      ...current,
-      visits: {
-        ...current.visits,
-        [placeId]: (current.visits[placeId] ?? 0) + 1
-      },
-      systemMessage: options?.auto
-        ? `Автоотметка добавила ещё одно посещение для ${place.name}.`
-        : `Посещение ${place.name} засчитано. Прогресс по наградам обновлён.`
-    }))
+    setState((current) => {
+      const newState = {
+        ...current,
+        visits: {
+          ...current.visits,
+          [placeId]: (current.visits[placeId] ?? 0) + 1
+        },
+        systemMessage: options?.auto
+          ? `Автоотметка добавила ещё одно посещение для ${place.name}.`
+          : `Посещение ${place.name} засчитано. Прогресс по наградам обновлён.`
+      };
+
+      // Если это подсказка о местоположении и пользователь подтвердил, обновляем состояние подсказки
+      if (current.locationPrompt && current.locationPrompt.placeId === placeId) {
+        return {
+          ...newState,
+          locationPrompt: {
+            ...current.locationPrompt,
+            accepted: true
+          }
+        };
+      }
+
+      return newState;
+    });
   }
 
   function toggleFavorite(placeId: string) {
@@ -301,10 +319,28 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
             : source === 'test'
               ? 'Тестовая позиция сдвинута. Можно проверить новые подсказки рядом.'
               : current.systemMessage
+      };
+
+      // Проверяем, нужно ли показать подсказку о местоположении
+      const nearbyPlace = nearbyPlaces.find(
+        (item) => item.distance < 1400 && (current.visits[item.place.id] ?? 0) === 0
+      );
+
+      if (nearbyPlace && (!current.locationPrompt || 
+          (Date.now() - current.locationPrompt.timestamp) > LOCATION_PROMPT_INTERVAL ||
+          current.locationPrompt.accepted === false)) {
+        return {
+          ...maybeApplyAutoCheckin(baseState, coords),
+          locationPrompt: {
+            placeId: nearbyPlace.place.id,
+            timestamp: Date.now(),
+            accepted: false
+          }
+        };
       }
 
-      return maybeApplyAutoCheckin(baseState, coords)
-    })
+      return maybeApplyAutoCheckin(baseState, coords);
+    });
   }
 
   function moveToTestSpot() {

@@ -91,30 +91,35 @@ export interface ProfileSettings {
 }
 
 export interface StoredState {
-  visits: Record<string, number>
-  favoriteIds: string[]
-  notes: Note[]
-  profile: ProfileSettings
-  activeQuestId: string
-  currentLocation: Coordinates
-  lastAutoCheckinKey?: string
-  systemMessage?: string
+  visits: Record<string, number>;
+  favoriteIds: string[];
+  notes: Note[];
+  profile: ProfileSettings;
+  activeQuestId: string;
+  currentLocation: Coordinates;
+  lastAutoCheckinKey?: string;
+  systemMessage?: string;
+  locationPrompt: {
+    placeId: string;
+    timestamp: number;
+    accepted: boolean;
+  } | null;
 }
 
 export interface NearbyPlace {
-  place: Place
-  distance: number
+  place: Place;
+  distance: number;
 }
 
 export interface QuestProgress {
-  quest: Quest
-  current: number
-  remaining: number
-  completed: boolean
-  nearPartner: boolean
+  quest: Quest;
+  current: number;
+  remaining: number;
+  completed: boolean;
+  nearPartner: boolean;
 }
 
 export interface UnlockedReward extends QuestReward {
-  id: string
-  questId: string
+  id: string;
+  questId: string;
 }

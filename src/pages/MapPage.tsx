@@ -112,6 +112,83 @@ export default function MapPage() {
 
   return (
     <div className="page-grid">
+      {/* Полноразмерная карта */}
+      <section className="map-layout-full">
+        <div className="leaflet-shell">
+          <MapContainer
+            center={[state.currentLocation.lat, state.currentLocation.lng]}
+            zoom={14}
+            scrollWheelZoom
+            style={{ height: '100%', width: '100%' }}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <MapFocus target={focusedLocation} />
+
+            <CircleMarker
+              center={[state.currentLocation.lat, state.currentLocation.lng]}
+              pathOptions={{ color: '#2a9d8f', fillColor: '#2a9d8f', fillOpacity: 0.9 }}
+              radius={11}
+            >
+              <Popup>Вы здесь</Popup>
+            </CircleMarker>
+
+            {places.map((place) => {
+              const visitCount = state.visits[place.id] ?? 0
+              return (
+                <CircleMarker
+                  key={place.id}
+                  center={[place.lat, place.lng]}
+                  pathOptions={{
+                    color: markerColor(place, selectedPlaceId, visitCount),
+                    fillColor: markerColor(place, selectedPlaceId, visitCount),
+                    fillOpacity: 0.88
+                  }}
+                  radius={selectedPlaceId === place.id ? 10 : 8}
+                  eventHandlers={{
+                    click: () => setSelectedPlaceId(place.id)
+                  }}
+                >
+                  <Popup>
+                    <strong>{place.name}</strong>
+                    <br />
+                    {visitCount > 0 ? `Посещений: ${visitCount}` : 'Ещё не открыто'}
+                  </Popup>
+                </CircleMarker>
+              )
+            })}
+          </MapContainer>
+        </div>
+
+        {/* Подсказка о местоположении */}
+        {state.locationPrompt && (
+          <div className="location-prompt">
+            <h3>{places.find(p => p.id === state.locationPrompt?.placeId)?.name} Вы здесь?</h3>
+            <div className="prompt-actions">
+              <button
+                className="primary-button"
+                onClick={() => checkIn(state.locationPrompt!.placeId)}
+                type="button"
+              >
+                Да
+              </button>
+              <button
+                className="secondary-button"
+                onClick={() => {
+                  // При нажатии "Нет" подсказка закрывается
+                  // Новая подсказка появится через LOCATION_PROMPT_INTERVAL
+                }}
+                type="button"
+              >
+                Нет
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+
       <section className="hero-card">
         <div className="hero-copy">
           <div className="eyebrow">Главная карта</div>
@@ -229,158 +306,6 @@ export default function MapPage() {
             </div>
           )}
         </div>
-      </section>
-
-      <section className="map-layout">
-        <div className="map-panel section-card">
-          <div className="section-heading">
-            <strong>Карта открытий</strong>
-            <span className="muted">
-              Посещённые места отмечены зелёным, рекомендации и неизвестные точки более
-              нейтральные.
-            </span>
-          </div>
-
-          <div className="leaflet-shell">
-            <MapContainer
-              center={[state.currentLocation.lat, state.currentLocation.lng]}
-              zoom={14}
-              scrollWheelZoom
-              style={{ height: '100%', width: '100%' }}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <MapFocus target={focusedLocation} />
-
-              <CircleMarker
-                center={[state.currentLocation.lat, state.currentLocation.lng]}
-                pathOptions={{ color: '#e63946', fillColor: '#ffb4a2', fillOpacity: 0.9 }}
-                radius={11}
-              >
-                <Popup>Вы здесь</Popup>
-              </CircleMarker>
-
-              {places.map((place) => {
-                const visitCount = state.visits[place.id] ?? 0
-                return (
-                  <CircleMarker
-                    key={place.id}
-                    center={[place.lat, place.lng]}
-                    pathOptions={{
-                      color: markerColor(place, selectedPlaceId, visitCount),
-                      fillColor: markerColor(place, selectedPlaceId, visitCount),
-                      fillOpacity: 0.88
-                    }}
-                    radius={selectedPlaceId === place.id ? 10 : 8}
-                    eventHandlers={{
-                      click: () => setSelectedPlaceId(place.id)
-                    }}
-                  >
-                    <Popup>
-                      <strong>{place.name}</strong>
-                      <br />
-                      {visitCount > 0 ? `Посещений: ${visitCount}` : 'Ещё не открыто'}
-                    </Popup>
-                  </CircleMarker>
-                )
-              })}
-            </MapContainer>
-          </div>
-
-          <div className="legend-row">
-            <div className="legend-item">
-              <span className="legend-dot visited" />
-              <span>Уже посещено</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-dot partner" />
-              <span>Партнёр с бонусами</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-dot default" />
-              <span>Новая точка</span>
-            </div>
-          </div>
-        </div>
-
-        <aside className="detail-card">
-          {selectedPlace ? (
-            <>
-              <div
-                className="place-gradient"
-                style={{ background: selectedPlace.highlight }}
-              />
-              <div className="detail-header">
-                <div>
-                  <div className="place-badge">
-                    <span className={selectedPlace.partner ? 'badge-partner' : 'badge-visited'}>
-                      {selectedPlace.partner ? 'Партнёрские призы' : 'Свободная точка'}
-                    </span>
-                    {selectedDistance ? <span>{formatDistance(selectedDistance)}</span> : null}
-                  </div>
-                  <h3>{selectedPlace.name}</h3>
-                  <p>{selectedPlace.address}</p>
-                </div>
-                <div className="mini-stat stacked">
-                  <span>Посещений</span>
-                  <strong>{state.visits[selectedPlace.id] ?? 0}</strong>
-                </div>
-              </div>
-
-              <p>{selectedPlace.description}</p>
-              <p className="muted">{selectedPlace.aiPitch}</p>
-
-              <div className="chip-row">
-                {selectedPlace.tags.slice(0, 5).map((tag) => (
-                  <span className="info-chip" key={tag}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="detail-actions">
-                <button
-                  className="primary-button"
-                  onClick={() => checkIn(selectedPlace.id)}
-                  type="button"
-                >
-                  Отметить посещение
-                </button>
-                <button
-                  className="secondary-button"
-                  onClick={() => toggleFavorite(selectedPlace.id)}
-                  type="button"
-                >
-                  {state.favoriteIds.includes(selectedPlace.id)
-                    ? 'Убрать из любимых'
-                    : 'Добавить в любимые'}
-                </button>
-              </div>
-
-              <div className="section-heading">
-                <strong>Призы и бонусы точки</strong>
-              </div>
-              <div className="pill-row compact">
-                {selectedPlace.rewards.map((reward) => (
-                  <div className="ghost-pill compact" key={reward}>
-                    {reward}
-                  </div>
-                ))}
-              </div>
-
-              <div className="mini-stat">
-                <span>Любимое место</span>
-                <span>{state.favoriteIds.includes(selectedPlace.id) ? 'Да' : 'Пока нет'}</span>
-              </div>
-            </>
-          ) : (
-            <div className="empty-state">
-              <p>Выбери точку на карте, чтобы увидеть детали места и доступные бонусы.</p>
-            </div>
-          )}
-        </aside>
       </section>
     </div>
   )
