@@ -366,4 +366,4 @@ export function createInitialState(): StoredState {
     locationPrompt: null
   };
 }
-}
+
